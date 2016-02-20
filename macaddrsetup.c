@@ -4,10 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <cutils/properties.h>
+#include <private/android_filesystem_config.h>
 
 #define LOG_TAG "macaddrsetup"
 #include <cutils/log.h>
+
+#define BT_MAC_FILE "/data/etc/bluetooth_bdaddr"
 
 extern const char *__progname;
 extern int ta_open(uint8_t p, uint8_t m, uint8_t c);
@@ -20,19 +24,12 @@ int main(int argc, char **argv)
 	uint32_t size;
 	char buf[6];
 	FILE *fpb, *fpw = NULL;
-	char record[PROPERTY_VALUE_MAX];
 	int ret, err, bt_addr, wl_addr;
 
-	property_get("ro.hardware",record,"");
-	SLOGI("Importing BT and WLAN address for %s platform\n", record);
-
-	if ((strcmp(record,"rhine")==0)||(strcmp(record,"shinano")==0)||(strcmp(record,"yukon")==0)||(strcmp(record,"kanuti")==0)||(strcmp(record,"kitakami")==0)){
-		wl_addr=2560;
-		bt_addr=2568;
-	} else {
-		SLOGE("Unsupported platform\n");
-		exit(1);
-	}
+	// Sony had a check for ro.hardware here, but since all supported devices were added here anyways,
+	// and the values are the same, it has been removed.
+	wl_addr=2560;
+	bt_addr=2568;
 
 	for (;;) {
 		err = ta_open(2, 0x1, 1);
@@ -43,9 +40,9 @@ int main(int argc, char **argv)
 		sleep(5);
 	}
 
-	fpb = fopen("/data/etc/bluetooth_bdaddr", "w");
+	fpb = fopen(BT_MAC_FILE, "w");
 	if (!fpb) {
-		SLOGE("failed to open /data/etc/bluetooth_bdaddr for writing:\n");
+		fprintf(stderr, "failed to open %s for writing\n", BT_MAC_FILE);
 		ta_close();
 		exit(1);
 	}
@@ -73,6 +70,8 @@ int main(int argc, char **argv)
 		fclose(fpb);
 		exit(1);
 	}
+	chown(BT_MAC_FILE, AID_BLUETOOTH, AID_BLUETOOTH);
+	chmod(BT_MAC_FILE, S_IRUSR | S_IWUSR | S_IRGRP); // 640
 
 	if (argc > 1) {
 		fpw = fopen(argv[1], "w");
