@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <cutils/properties.h>
-#include <private/android_filesystem_config.h>
 
 #define LOG_TAG "macaddrsetup"
 #include <cutils/log.h>
