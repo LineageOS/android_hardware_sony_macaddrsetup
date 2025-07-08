@@ -1,0 +1,24 @@
+cc_binary {
+    name: "macaddrsetup",
+    owner: "sony",
+
+    init_rc: ["vendor/etc/init/macaddrsetup.rc"],
+
+    srcs: ["macaddrsetup.c"],
+
+    cflags: select(soong_config_variable("sony_macaddrsetup", "wifi_driver"), {
+        "brcmfmac": ["-DBRCMFMAC"],
+        "qca_cld3": ["-DQCA_CLD3_WIFI"],
+        default: [],
+    }) + select(soong_config_variable("sony_macaddrsetup", "mirror_mac_address"), {
+        "true": ["-DMIRROR_MAC_ADDRESS"],
+        default: [],
+    }),
+
+    shared_libs: [
+        "libcutils",
+        "liblog",
+    ],
+
+    vendor: true,
+}
