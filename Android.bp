@@ -11,7 +11,7 @@ cc_binary {
         "qca_cld3": ["-DQCA_CLD3_WIFI"],
         default: [],
     }) + select(soong_config_variable("sony_macaddrsetup", "mirror_mac_address"), {
-        "true": ["-DMIRROR_MAC_ADDRESS"],
+        true: ["-DMIRROR_MAC_ADDRESS"],
         default: [],
     }),
 
